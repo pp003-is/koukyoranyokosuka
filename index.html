@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A3E7A">
+<title>スカ線 品川</title>
+<style>
+:root{
+  --navy:#0A3E7A; --cream:#F2E7C9; --cream-d:#D9C89A;
+  --bg:#EEF1F5; --card:#FFFFFF; --ink:#16202B; --sub:#6C7A89; --line:#DFE5EC;
+  --ltd:#6B4FA8;
+  --c1:#2E9E6B; --c2:#7DB53F; --c3:#E0A62F; --c4:#E5762F; --c5:#D24B3E;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:"Meiryo UI",Meiryo,"Hiragino Kaku Gothic ProN",sans-serif;
+  background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;padding-bottom:40px;
+}
+.wrap{max-width:480px;margin:0 auto;padding:0 14px;}
+
+header{background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 12px) 0 0;border-bottom:4px solid var(--cream);}
+.hd{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:10px;}
+.hd h1{font-size:16px;font-weight:bold;margin:0;letter-spacing:.04em;}
+.hd h1 small{display:block;font-size:11px;font-weight:normal;opacity:.75;letter-spacing:.08em;margin-top:2px;}
+.clock{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums;}
+
+.dirs{display:flex;}
+.dirs button{
+  flex:1;appearance:none;border:0;cursor:pointer;font-family:inherit;font-size:14px;font-weight:bold;
+  padding:11px 4px 10px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);
+  border-radius:10px 10px 0 0;transition:background .15s,color .15s;
+}
+.dirs button + button{margin-left:6px;}
+.dirs button span{display:block;font-size:11px;font-weight:normal;opacity:.85;margin-top:1px;}
+.dirs button[aria-selected="true"]{background:var(--bg);color:var(--navy);}
+
+.daybar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;}
+.daynow{font-size:12px;color:var(--sub);}
+.daynow b{color:var(--ink);}
+.dpills{display:flex;background:#E1E7EE;border-radius:8px;padding:2px;flex:none;}
+.dpills button{
+  appearance:none;border:0;background:transparent;font-family:inherit;font-size:12px;font-weight:bold;
+  color:var(--sub);padding:5px 11px;border-radius:6px;cursor:pointer;
+}
+.dpills button[aria-pressed="true"]{background:var(--card);color:var(--navy);box-shadow:0 1px 2px rgba(20,40,70,.15);}
+
+.hero{background:var(--card);border-radius:14px;margin-top:10px;padding:16px 16px 14px;box-shadow:0 1px 3px rgba(20,40,70,.10);}
+.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--sub);font-weight:bold;}
+.timerow{display:flex;align-items:flex-end;gap:12px;margin-top:4px;}
+.dep{font-size:44px;font-weight:bold;line-height:1;font-variant-numeric:tabular-nums;}
+.arr{font-size:13px;color:var(--sub);margin-top:6px;font-variant-numeric:tabular-nums;}
+.arr b{color:var(--ink);font-weight:bold;}
+.left{margin-left:auto;text-align:right;line-height:1.15;}
+.left b{font-size:30px;font-weight:bold;font-variant-numeric:tabular-nums;}
+.left i{font-style:normal;font-size:13px;color:var(--sub);}
+.left.soon b{color:var(--c5);}
+.dest{margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.dest .to{font-size:17px;font-weight:bold;}
+.badge{font-size:11px;font-weight:bold;padding:2px 7px;border-radius:4px;background:#E7EDF5;color:var(--navy);}
+.badge.ltd{background:var(--ltd);color:#fff;}
+.badge.st{background:var(--c1);color:#fff;}
+
+.cong{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);}
+.seat{display:flex;align-items:baseline;gap:9px;}
+.seat b{font-size:21px;font-weight:bold;line-height:1.2;}
+.seat span{font-size:12.5px;color:var(--sub);}
+.cong-hd{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--sub);}
+.cong-hd b{font-size:14px;}
+.faces{display:flex;justify-content:space-between;align-items:center;height:40px;padding:0 6px;}
+.faces span{font-size:19px;line-height:1;opacity:.2;filter:grayscale(1);transition:transform .3s,opacity .3s,filter .3s;}
+.faces span.on{opacity:1;filter:none;transform:scale(1.65);}
+.cong small{display:block;margin-top:7px;font-size:11px;color:var(--sub);}
+
+/* ---- 線路と電車 ---- */
+.track{position:relative;height:46px;margin:14px -2px 0;overflow:hidden;}
+.rail{position:absolute;left:0;right:0;bottom:6px;height:3px;background:#C3CEDA;border-radius:2px;}
+.ties{position:absolute;left:0;right:0;bottom:1px;height:5px;
+  background:repeating-linear-gradient(90deg,#D5DDE6 0 3px,transparent 3px 12px);}
+.station{position:absolute;right:0;bottom:9px;width:44px;height:15px;background:var(--cream);
+  border-radius:3px 3px 0 0;border-bottom:3px solid var(--cream-d);
+  display:flex;align-items:center;justify-content:center;}
+.station span{font-size:10px;font-weight:bold;color:#7A6520;letter-spacing:.02em;}
+.train{position:absolute;bottom:6px;left:0;width:62px;}
+.train.gone{opacity:0;pointer-events:none;}
+.bob{animation:bob .55s ease-in-out infinite alternate;}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-2px)}}
+.wheel{animation:spin .7s linear infinite;transform-box:fill-box;transform-origin:center;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.eye{animation:blink 4.5s infinite;transform-box:fill-box;transform-origin:center;}
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.12)}}
+.trackmsg{font-size:12px;color:var(--sub);text-align:center;margin-top:2px;}
+.trackmsg.near{color:var(--c5);font-weight:bold;}
+
+.scrub{background:var(--card);border-radius:12px;margin-top:12px;padding:11px 14px 7px;box-shadow:0 1px 3px rgba(20,40,70,.08);border:2px solid transparent;}
+.scrub.sim{border-color:var(--cream-d);background:#FFFDF6;}
+.scrub-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:26px;}
+.scrub-hd span{font-size:12px;color:var(--sub);}
+.scrub-hd span b{color:var(--ink);font-size:13.5px;font-variant-numeric:tabular-nums;}
+#nowBtn{appearance:none;border:0;background:var(--navy);color:#fff;font-family:inherit;font-size:11.5px;
+  font-weight:bold;padding:6px 12px;border-radius:999px;cursor:pointer;flex:none;}
+#timeRange{width:100%;appearance:none;-webkit-appearance:none;background:transparent;margin:6px 0 0;display:block;}
+#timeRange:focus-visible{outline:2px solid var(--navy);outline-offset:4px;}
+#timeRange::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:#E1E7EE;}
+#timeRange::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+  background:var(--navy);border:3px solid #fff;box-shadow:0 1px 4px rgba(20,40,70,.35);margin-top:-10px;}
+#timeRange::-moz-range-track{height:6px;border-radius:3px;background:#E1E7EE;}
+#timeRange::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--navy);border:3px solid #fff;}
+.ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-top:1px;}
+h2.sec{font-size:12px;letter-spacing:.16em;color:var(--sub);font-weight:bold;margin:20px 0 8px;}
+.list{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(20,40,70,.08);}
+.row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--line);}
+.row:first-child{border-top:0;}
+.row .t{font-size:18px;font-weight:bold;font-variant-numeric:tabular-nums;width:64px;line-height:1.2;}
+.row .t em{display:block;font-style:normal;font-size:11px;font-weight:normal;color:var(--sub);}
+.row .m{font-size:12px;color:var(--sub);width:52px;text-align:right;font-variant-numeric:tabular-nums;}
+.row .d{flex:1;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dot{width:22px;flex:none;font-size:16px;line-height:1;}
+
+.chip{
+  display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:8px 12px;border-radius:999px;
+  border:1px solid var(--line);background:var(--card);font-size:12.5px;color:var(--ink);cursor:pointer;font-family:inherit;
+}
+.chip[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy);}
+.chip .sw{width:26px;height:15px;border-radius:99px;background:#CFD8E2;position:relative;flex:none;transition:background .15s;}
+.chip .sw::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;transition:transform .15s;}
+.chip[aria-pressed="true"] .sw{background:var(--c1);}
+.chip[aria-pressed="true"] .sw::after{transform:translateX(11px);}
+
+details.tt{margin-top:20px;background:var(--card);border-radius:12px;box-shadow:0 1px 3px rgba(20,40,70,.08);overflow:hidden;}
+details.tt summary{padding:13px 14px;font-size:13.5px;font-weight:bold;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+details.tt summary::-webkit-details-marker{display:none;}
+details.tt summary em{font-style:normal;font-weight:normal;font-size:11.5px;color:var(--sub);margin-left:auto;}
+details.tt summary::after{content:"▼";font-size:10px;color:var(--sub);transition:transform .2s;}
+details.tt[open] summary::after{transform:rotate(180deg);}
+.hr{display:flex;border-top:1px solid var(--line);padding:7px 10px 7px 0;}
+.hr .h{width:44px;flex:none;text-align:center;font-weight:bold;font-size:15px;color:var(--navy);font-variant-numeric:tabular-nums;padding-top:4px;}
+.hr.now{background:#F5F8FC;}
+.hr.now .h{color:var(--c5);}
+.mins{display:flex;flex-wrap:wrap;gap:5px;flex:1;}
+.mins span{min-width:38px;text-align:center;padding:4px 5px;border-radius:6px;background:#EDF1F6;font-size:14px;font-variant-numeric:tabular-nums;}
+.mins span.past{opacity:.32;}
+.mins span.ltd{background:#EFE9F9;color:var(--ltd);font-weight:bold;}
+.mins span.next{background:var(--navy);color:#fff;font-weight:bold;}
+.mins span sub{font-size:9px;vertical-align:baseline;opacity:.75;margin-left:1px;}
+
+footer{font-size:11px;color:var(--sub);line-height:1.65;margin-top:22px;padding-bottom:10px;}
+footer b{color:var(--ink);}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="hd">
+      <h1>横須賀線 品川<small>SHINAGAWA / YOKOSUKA LINE</small></h1>
+      <div class="clock" id="clock">--:--</div>
+    </div>
+    <div class="dirs" role="tablist">
+      <button id="btnOut" role="tab" aria-selected="true">行き<span>品川 → 東京</span></button>
+      <button id="btnRet" role="tab" aria-selected="false">帰り<span>東京 → 品川</span></button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="daybar">
+    <div class="daynow" id="dayNow"></div>
+    <div class="dpills">
+      <button data-dt="weekday" aria-pressed="false">平日</button>
+      <button data-dt="holiday" aria-pressed="false">土休日</button>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="eyebrow">つぎの電車</div>
+    <div class="timerow">
+      <div>
+        <div class="dep" id="depTime">--:--</div>
+        <div class="arr" id="arrLine"></div>
+      </div>
+      <div class="left" id="leftBox"><b id="leftNum">--</b><i id="leftUnit">分後</i></div>
+    </div>
+    <div class="dest">
+      <span class="to" id="destName">-</span>
+      <span class="badge st" id="startBadge" style="display:none">当駅始発</span>
+    </div>
+    <div class="track" id="track">
+      <div class="rail"></div>
+      <div class="ties"></div>
+      <div class="station"><span id="stName">品川</span></div>
+      <div class="train" id="trainMain">
+        <div class="bob">
+          <svg viewBox="0 0 62 34" width="62" height="34" aria-hidden="true">
+            <rect x="2" y="3" width="57" height="22" rx="7" fill="#0A3E7A"/>
+            <rect x="2" y="17" width="57" height="5" fill="#F2E7C9"/>
+            <rect x="7" y="7" width="9" height="7" rx="2" fill="#DCE9F5"/>
+            <rect x="19" y="7" width="9" height="7" rx="2" fill="#DCE9F5"/>
+            <rect x="31" y="7" width="9" height="7" rx="2" fill="#DCE9F5"/>
+            <rect x="44" y="6" width="12" height="9" rx="3" fill="#DCE9F5"/>
+            <circle class="eye" cx="47.6" cy="10.5" r="1.6" fill="#16202B"/>
+            <circle class="eye" cx="52.6" cy="10.5" r="1.6" fill="#16202B"/>
+            <circle cx="56" cy="21.5" r="1.7" fill="#FFE08A"/>
+            <g class="wheel"><circle cx="15" cy="26" r="4" fill="#3A4855"/><rect x="14.2" y="22.6" width="1.6" height="6.8" rx=".8" fill="#8E9BA8"/></g>
+            <g class="wheel"><circle cx="45" cy="26" r="4" fill="#3A4855"/><rect x="44.2" y="22.6" width="1.6" height="6.8" rx=".8" fill="#8E9BA8"/></g>
+          </svg>
+        </div>
+      </div>
+      <div class="train gone" id="trainGone"></div>
+    </div>
+    <div class="trackmsg" id="trackMsg"></div>
+
+    <div class="cong">
+      <div class="seat"><b id="seatVerdict">-</b><span id="seatSub"></span></div>
+      <div class="faces" id="faces"><span>😄</span><span>🙂</span><span>😐</span><span>😠</span><span>😡</span></div>
+      <div class="cong-hd"><span>混雑度の目安</span><b id="congLabel">-</b></div>
+      <small id="congNote"></small>
+    </div>
+  </section>
+
+  <div class="scrub" id="scrub">
+    <div class="scrub-hd">
+      <span id="scrubLabel">いまの時刻で表示中</span>
+      <button id="nowBtn" style="display:none">いまに戻す</button>
+    </div>
+    <input type="range" id="timeRange" min="240" max="1439" step="5" aria-label="表示する時刻">
+    <div class="ticks"><span>4時</span><span>8時</span><span>12時</span><span>16時</span><span>20時</span><span>24時</span></div>
+  </div>
+
+  <h2 class="sec">そのあと</h2>
+  <div class="list" id="upcoming"></div>
+
+  <details class="tt" id="ttBox">
+    <summary>全時刻表<em id="ttLabel"></em></summary>
+    <div id="ttBody"></div>
+  </details>
+
+  <footer>
+    <b>データ</b>：Yahoo!路線情報／JR時刻表 令和8年8月号ベース。JR東日本は<b>平日</b>と<b>土休日</b>の2パターンなので、土曜と日曜・祝日は同じダイヤ。<br>
+    <b>祝日判定</b>は2026〜2027年ぶんを内蔵。年末年始やダイヤ改正は反映されない。<br>
+    <b>混雑度</b>：時間帯からの<b>推定値</b>で実測ではない。混雑率は国交省の定義（100%＝定員乗車）に合わせた目安。<br>
+    <b>特急は非表示</b>。乗車券のほかに特急券が必要で、交通系ICだけでは乗れないため除外している。<br>
+    <b>所要時間</b>は品川〜東京を7分として計算した目安。帰りの元データは品川発なので、東京発の時刻は7分逆算した推定値。
+  </footer>
+</div>
+
+<script>
+// ===== 方面の定義 =====
+const DIRS = {
+  out:{ label:'品川 → 東京方面', defDest:'成田空港',
+        dest:{'千':'千葉','君':'君津','一':'上総一ノ宮','東':'東京','津':'津田沼','佐':'佐倉','田':'成田','成':'成東','鹿':'鹿島神宮'} },
+  ret:{ label:'東京 → 品川（横浜・久里浜方面）', defDest:'久里浜',
+        dest:{'逗':'逗子','船':'大船','新':'新宿','須':'横須賀'} }
+};
+
+// [分, 行き先コード, フラグ] L=特急 / S=当駅始発
+const TT = {
+  out:{
+    weekday:{
+      5:[[44,'東']],
+      6:[[1,''],[5,'','L'],[26,'千'],[41,'君'],[47,'','L'],[55,'津']],
+      7:[[8,'君'],[15,'津'],[18,'','L'],[25,'千'],[30,'東'],[36,'千'],[39,'','L'],[47,'千'],[50,'東','L'],[53,'君']],
+      8:[[0,''],[4,'東','L'],[7,'千'],[11,'津'],[16,'千'],[19,'','L'],[23,'千'],[26,'津','S'],[30,'千'],[36,'一'],[39,'東','L'],[42,'津','S'],[45,'君'],[49,'','L'],[54,'千']],
+      9:[[1,'津'],[6,''],[9,'津','S'],[15,'東'],[21,'','L'],[25,'千'],[29,'津','S'],[33,'一'],[39,'津'],[45,'君'],[50,'','L'],[56,'千']],
+      10:[[3,''],[10,'東'],[16,'東'],[23,'','L'],[28,'津'],[37,'千'],[45,'君'],[49,'','L']],
+      11:[[4,''],[16,'千'],[23,'','L'],[32,'千'],[46,'君'],[49,'','L']],
+      12:[[4,''],[16,'千'],[24,'','L'],[32,'千'],[46,'君'],[50,'','L']],
+      13:[[4,''],[16,'千'],[24,'','L'],[32,'千'],[46,'君'],[50,'','L']],
+      14:[[4,''],[16,'千'],[24,'','L'],[32,'一'],[46,'君'],[49,'','L']],
+      15:[[4,''],[16,'千'],[24,'','L'],[33,'一'],[46,'君'],[49,'','L']],
+      16:[[3,'千'],[16,'千'],[24,'','L'],[28,''],[44,'一'],[49,'','L']],
+      17:[[0,''],[8,'千'],[16,'津'],[24,'','L'],[30,'津'],[38,''],[45,'一'],[49,'','L'],[59,''],[59,'鹿']],
+      18:[[7,'千'],[11,'千','S'],[16,'千'],[24,'','L'],[28,'津'],[33,''],[33,'成'],[45,'一'],[49,'','L'],[59,'']],
+      19:[[9,'津'],[17,'田'],[31,'千'],[38,'千'],[46,'一'],[49,'','L']],
+      20:[[0,''],[8,'千'],[18,'千'],[30,'東'],[42,'千'],[52,'佐']],
+      21:[[3,'千'],[15,''],[21,'君'],[28,'田'],[38,'千'],[47,'佐'],[57,'']],
+      22:[[6,'千'],[18,'津'],[29,'千'],[40,'千'],[55,'千']],
+      23:[[8,'千'],[29,'千'],[52,'千']]
+    },
+    holiday:{
+      5:[[44,'東']],
+      6:[[1,''],[5,'','L'],[26,'千'],[41,'君'],[47,'','L'],[55,'津']],
+      7:[[7,'君'],[15,'津'],[18,'','L'],[26,'東'],[36,'千'],[39,'','L'],[47,'東'],[55,'君']],
+      8:[[2,''],[11,'千'],[19,'','L'],[24,'千'],[35,'一'],[43,'津'],[49,'','L'],[53,'千']],
+      9:[[2,''],[8,'津'],[21,'','L'],[25,'千'],[32,'津'],[38,'一'],[45,'君'],[50,'','L'],[56,'千']],
+      10:[[1,''],[11,'千'],[16,'千'],[23,'','L'],[28,'千'],[37,'東'],[45,'君'],[49,'','L']],
+      11:[[4,'津'],[16,'千'],[23,'','L'],[31,'東'],[46,'君'],[49,'','L']],
+      12:[[4,''],[16,'千'],[24,'','L'],[32,'千'],[46,'君'],[50,'','L']],
+      13:[[4,''],[16,'千'],[24,'','L'],[32,'千'],[46,'君'],[50,'','L']],
+      14:[[4,''],[16,'千'],[24,'','L'],[32,'一'],[46,'君'],[49,'','L']],
+      15:[[4,''],[16,'千'],[24,'','L'],[33,'一'],[46,'君'],[49,'','L']],
+      16:[[4,'千'],[16,'千'],[24,'','L'],[28,''],[44,'一'],[49,'','L'],[59,'津']],
+      17:[[7,'千'],[17,'千'],[24,'','L'],[33,'千'],[39,''],[45,'一'],[49,'','L']],
+      18:[[2,'千'],[15,'千'],[24,'','L'],[29,''],[29,'成'],[34,'津'],[45,'一'],[49,'','L'],[59,'東']],
+      19:[[11,'田'],[22,'君'],[33,'東'],[39,'千'],[46,'一'],[49,'','L'],[59,'君']],
+      20:[[6,''],[20,'君'],[32,'佐'],[42,'千'],[50,'佐']],
+      21:[[0,'一'],[15,''],[21,'君'],[29,'田'],[37,'東'],[47,'佐'],[56,'']],
+      22:[[7,'千'],[19,'千'],[33,'千'],[46,'佐'],[56,'千']],
+      23:[[7,'千'],[29,'千'],[52,'千']]
+    }
+  },
+  ret:{
+    weekday:{
+      4:[[30,'','S']],
+      5:[[3,'','S'],[33,'逗'],[54,'逗']],
+      6:[[9,''],[23,''],[41,''],[53,'']],
+      7:[[5,'逗'],[21,'逗'],[33,'逗'],[43,'逗'],[49,'船'],[54,'']],
+      8:[[5,'逗'],[10,'船'],[15,'逗'],[22,'逗'],[28,'船'],[36,'船'],[42,'逗'],[47,'逗'],[55,'船'],[58,'逗']],
+      9:[[1,'船','L'],[9,'逗'],[21,''],[28,'船'],[31,'新','L'],[36,'逗'],[44,'船'],[53,'逗'],[58,'船']],
+      10:[[3,'船','L'],[14,'逗'],[20,''],[26,'新','L'],[34,'逗'],[48,'逗'],[54,'船','L']],
+      11:[[2,'逗'],[16,''],[24,'新','L'],[32,'逗'],[45,'逗'],[53,'船','L']],
+      12:[[1,'逗'],[16,''],[24,'新','L'],[32,'逗'],[45,'逗'],[54,'船','L']],
+      13:[[1,'逗'],[16,''],[24,'新','L'],[33,'逗'],[45,'逗'],[54,'船','L']],
+      14:[[3,'逗'],[16,''],[24,'新','L'],[32,'逗'],[45,'逗'],[54,'船','L']],
+      15:[[2,'須'],[16,''],[26,'新','L'],[32,''],[45,'逗'],[54,'船','L']],
+      16:[[2,'逗'],[11,''],[19,'須'],[26,'新','L'],[32,''],[42,'逗'],[50,''],[54,'船','L']],
+      17:[[2,''],[13,''],[21,''],[29,'新','L'],[35,'逗'],[47,''],[55,'船','L']],
+      18:[[2,''],[10,'逗'],[18,''],[24,'須'],[28,'船','L'],[35,''],[47,''],[53,''],[57,'船','L']],
+      19:[[4,'船'],[14,''],[24,'逗'],[29,'新','L'],[32,''],[39,''],[45,'逗'],[53,''],[56,'船','L']],
+      20:[[4,'須'],[17,''],[23,'新','L'],[26,'逗'],[35,''],[46,''],[58,'']],
+      21:[[1,'船','L'],[12,'逗'],[21,''],[33,''],[40,'船'],[49,''],[52,'船','L']],
+      22:[[4,''],[16,'逗'],[26,''],[40,''],[47,'船','L'],[56,'']],
+      23:[[12,''],[31,'船'],[43,'逗'],[59,'船']]
+    },
+    holiday:{
+      4:[[30,'','S']],
+      5:[[3,'','S'],[33,'逗'],[54,'逗']],
+      6:[[9,''],[25,''],[41,''],[56,'']],
+      7:[[6,'逗'],[20,'逗'],[33,'逗'],[44,'逗'],[55,'逗']],
+      8:[[2,'船'],[8,'逗'],[17,'逗'],[23,'船'],[30,'船'],[37,'逗'],[43,'逗'],[58,'逗']],
+      9:[[1,'船','L'],[9,'逗'],[17,''],[28,'船'],[31,'新','L'],[38,'逗'],[48,'逗'],[57,'逗']],
+      10:[[3,'船','L'],[13,'逗'],[20,''],[26,'新','L'],[35,'逗'],[48,'逗'],[54,'船','L']],
+      11:[[2,'逗'],[16,''],[24,'新','L'],[33,'逗'],[45,'逗'],[53,'船','L']],
+      12:[[1,'逗'],[16,''],[24,'新','L'],[31,'逗'],[46,'逗'],[54,'船','L']],
+      13:[[1,'逗'],[16,''],[24,'新','L'],[33,'逗'],[45,'逗'],[54,'船','L']],
+      14:[[3,'逗'],[16,''],[24,'新','L'],[32,'逗'],[45,'逗'],[54,'船','L']],
+      15:[[2,'須'],[16,''],[26,'新','L'],[32,''],[45,'逗'],[54,'船','L']],
+      16:[[2,'須'],[16,''],[26,'新','L'],[32,''],[42,'逗'],[51,''],[54,'船','L']],
+      17:[[2,'逗'],[13,''],[21,''],[29,'新','L'],[35,''],[45,''],[55,'船','L']],
+      18:[[3,''],[13,'逗'],[18,''],[24,'須'],[28,'船','L'],[35,''],[45,''],[53,''],[57,'船','L']],
+      19:[[10,'船'],[16,''],[24,''],[29,'新','L'],[36,''],[45,'船'],[51,''],[56,'船','L']],
+      20:[[3,'逗'],[15,''],[23,'新','L'],[26,'須'],[37,''],[47,'逗'],[56,'']],
+      21:[[1,'船','L'],[9,''],[20,''],[31,''],[44,'逗'],[48,''],[52,'船','L']],
+      22:[[4,''],[16,'逗'],[26,''],[40,''],[47,'船','L'],[56,'']],
+      23:[[12,''],[31,'船'],[43,'逗'],[59,'船']]
+    }
+  }
+};
+
+// 混雑度の時間帯（[この分未満なら, レベル1-5]）
+const BANDS = {
+  out:{
+    weekday:[[405,1],[435,4],[525,5],[560,4],[660,3],[900,2],[1020,3],[1170,4],[1320,3],[1440,2]],
+    holiday:[[420,1],[540,2],[660,3],[1020,2],[1200,3],[1320,2],[1440,2]]
+  },
+  ret:{
+    weekday:[[420,1],[540,3],[660,3],[960,2],[1050,3],[1170,5],[1290,4],[1380,3],[1440,4]],
+    holiday:[[480,1],[660,3],[900,2],[1020,2],[1200,3],[1320,3],[1440,4]]
+  }
+};
+
+const LV = [null,
+  {e:'😄', sit:'座れる',   t:'空席あり',         r:'〜80%',     c:'var(--c1)', n:'車内に空席がある'},
+  {e:'🙂', sit:'座れない', t:'余裕で立てる',     r:'80〜105%',  c:'var(--c2)', n:'立つけど窮屈さはない'},
+  {e:'😐', sit:'座れない', t:'楽に立てる',       r:'105〜130%', c:'var(--c3)', n:'ゆったり立ててスマホも見られる'},
+  {e:'😠', sit:'座れない', t:'混雑して立つ',     r:'130〜155%', c:'var(--c4)', n:'体が触れ合う。1本ずらす手もある'},
+  {e:'😡', sit:'座れない', t:'かなり混雑',       r:'155%〜',    c:'var(--c5)', n:'ピーク帯。無理せず1本ずらすのが吉'}
+];
+
+// 品川〜東京の所要（分）
+const RIDE = 7;
+const STOPS = { out:{from:'品川', to:'東京'}, ret:{from:'東京', to:'品川'} };
+
+// 2026〜2027年の祝日・振替休日
+const HOLIDAYS = new Set([
+ '2026-01-01','2026-01-12','2026-02-11','2026-02-23','2026-03-20','2026-04-29',
+ '2026-05-03','2026-05-04','2026-05-05','2026-05-06','2026-07-20','2026-08-11',
+ '2026-09-21','2026-09-22','2026-09-23','2026-10-12','2026-11-03','2026-11-23',
+ '2027-01-01','2027-01-11','2027-02-11','2027-02-23','2027-03-21','2027-03-22',
+ '2027-04-29','2027-05-03','2027-05-04','2027-05-05','2027-07-19','2027-08-11',
+ '2027-09-20','2027-09-23','2027-10-11','2027-11-03','2027-11-23'
+]);
+
+const pad = n => String(n).padStart(2,'0');
+const WD = ['日','月','火','水','木','金','土'];
+
+function autoDayType(d){
+  const key = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const w = d.getDay();
+  return (w===0 || w===6 || HOLIDAYS.has(key)) ? 'holiday' : 'weekday';
+}
+function isHolidayDate(d){
+  return HOLIDAYS.has(d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()));
+}
+
+let dir = 'out';
+let dayType = autoDayType(new Date());
+
+function trains(){
+  const info = DIRS[dir], tt = TT[dir][dayType], out = [];
+  const off = (dir==='ret') ? -RIDE : 0;   // 帰りの元データは品川発なので東京発に戻す
+  Object.keys(tt).forEach(h=>{
+    tt[h].forEach(([m,dc,fl])=>{
+      if(fl==='L') return;                 // 特急は乗らないので除外
+      const abs = (+h)*60 + m + off;
+      out.push({abs, arr: abs + RIDE, dest: dc ? info.dest[dc] : info.defDest, ltd: fl==='L', start: fl==='S'});
+    });
+  });
+  out.sort((a,b)=>a.abs-b.abs);
+  // 同時刻＝分割併合列車なので1本にまとめる
+  const merged = [];
+  out.forEach(t=>{
+    const p = merged[merged.length-1];
+    if(p && p.abs===t.abs && p.ltd===t.ltd){ p.dest += '・' + t.dest; }
+    else {
+      t.hh = Math.floor(((t.abs%1440)+1440)%1440/60); t.mm = ((t.abs%60)+60)%60;
+      t.ah = Math.floor(((t.arr%1440)+1440)%1440/60); t.am = ((t.arr%60)+60)%60;
+      merged.push(t);
+    }
+  });
+  return merged;
+}
+
+function level(abs){
+  const t = ((abs%1440)+1440)%1440;
+  for(const [lim,lv] of BANDS[dir][dayType]){ if(t < lim) return lv; }
+  return 3;
+}
+
+// ===== 電車のアニメーション =====
+let lastDeparted = null;
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function stationX(){
+  const w = document.getElementById('track').clientWidth;
+  return Math.max(0, w - 44 - 58);   // ホームの手前で止まる
+}
+function moveTrain(diff){
+  const el = document.getElementById('trainMain');
+  const p = 1 - Math.min(diff, 15) / 15;          // 15分前から近づきはじめる
+  el.style.transition = (REDUCED || simMin !== null) ? 'none' : 'left 1s linear';
+  el.style.left = Math.round(p * stationX()) + 'px';
+  const bob = el.querySelector('.bob');
+  const spd = diff < 3 ? '.34s' : diff < 8 ? '.45s' : '.7s';
+  bob.style.animationDuration = spd;
+  el.querySelectorAll('.wheel').forEach(w => w.style.animationDuration = (diff < 3 ? '.4s' : diff < 8 ? '.55s' : '.85s'));
+}
+function playDeparture(){
+  const g = document.getElementById('trainGone');
+  if(REDUCED || !g.firstChild) return;
+  const w = document.getElementById('track').clientWidth;
+  g.style.transition = 'none';
+  g.style.left = stationX() + 'px';
+  g.style.opacity = '1';
+  requestAnimationFrame(()=>{
+    g.style.transition = 'left 1.4s cubic-bezier(.35,0,.85,1), opacity .5s ease 1s';
+    g.style.left = (w + 20) + 'px';
+    g.style.opacity = '0';
+  });
+}
+
+let simMin = null;   // null＝いまの時刻、数値＝スライダーでずらした時刻
+
+function render(){
+  const now = new Date();
+  const realMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+  const nowMin = (simMin === null) ? realMin : simMin;
+  const curH = Math.floor(nowMin/60) % 24;
+  document.getElementById('clock').textContent = pad(curH)+':'+pad(Math.floor(nowMin%60));
+  const range = document.getElementById('timeRange');
+  if(simMin === null && document.activeElement !== range) range.value = Math.round(realMin);
+
+  const list = trains();
+  let next = list.filter(t => t.abs > nowMin);
+  let rollover = false;
+  if(next.length === 0){ next = list.slice(); rollover = true; }
+
+  const t0 = next[0];
+  document.getElementById('depTime').textContent = pad(t0.hh)+':'+pad(t0.mm);
+  document.getElementById('arrLine').innerHTML =
+    '→ <b>'+pad(t0.ah)+':'+pad(t0.am)+'</b> '+STOPS[dir].to+'着（'+RIDE+'分）';
+  document.getElementById('destName').textContent = t0.dest + '行';
+
+  document.getElementById('startBadge').style.display = t0.start ? '' : 'none';
+
+  const diff = t0.abs - nowMin + (rollover ? 1440 : 0);
+  const box = document.getElementById('leftBox');
+  const num = document.getElementById('leftNum'), unit = document.getElementById('leftUnit');
+  if(diff < 1){ num.textContent='まもなく'; num.style.fontSize='20px'; unit.textContent=''; }
+  else if(diff < 60){ num.textContent=Math.floor(diff); num.style.fontSize=''; unit.textContent='分後'; }
+  else { num.textContent=Math.floor(diff/60)+':'+pad(Math.floor(diff%60)); num.style.fontSize='26px'; unit.textContent='後'; }
+  box.classList.toggle('soon', diff < 5);
+
+  // ---- 線路の上の電車 ----
+  const gone = list.filter(t => t.abs <= nowMin).pop();
+  const justLeft = gone && (nowMin - gone.abs) < 0.75;
+  if(gone && justLeft && simMin === null && lastDeparted !== gone.abs){
+    const skip = (lastDeparted === -1);
+    lastDeparted = gone.abs;
+    if(!skip) playDeparture();
+  }
+  moveTrain(diff);
+  const msg = document.getElementById('trackMsg');
+  msg.textContent = justLeft ? 'いま発車したところ'
+    : diff < 1 ? 'まもなく到着'
+    : diff < 3 ? 'もうすぐ来る'
+    : diff < 8 ? '近づいてきた'
+    : diff < 20 ? 'そろそろ向かってる'
+    : 'まだ当分こない';
+  msg.classList.toggle('near', !justLeft && diff < 3);
+  document.getElementById('stName').textContent = STOPS[dir].from;
+
+  let lv = level(t0.abs);
+  if(t0.start) lv = Math.max(1, lv-1);
+  const faces = document.getElementById('faces').children;
+  for(let i=0;i<5;i++) faces[i].classList.toggle('on', i === lv-1);
+  const sv = document.getElementById('seatVerdict');
+  sv.textContent = LV[lv].sit;
+  sv.style.color = LV[lv].c;
+  document.getElementById('seatSub').textContent = t0.start ? '当駅始発。並べばまず座れる' : LV[lv].t;
+  const congLabel = document.getElementById('congLabel'), congNote = document.getElementById('congNote');
+  congLabel.textContent = LV[lv].t + '  ' + LV[lv].r;
+  congLabel.style.color = LV[lv].c;
+  congNote.textContent = LV[lv].n + (t0.start ? '／当駅始発なので座りやすい' : '') + '（推定）';
+
+  const ul = document.getElementById('upcoming');
+  ul.innerHTML = '';
+  next.slice(1,6).forEach(t=>{
+    let d2 = t.abs - nowMin + (rollover ? 1440 : 0);
+    if(d2 < 0) d2 += 1440;
+    const l = t.start ? Math.max(1, level(t.abs)-1) : level(t.abs);
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML =
+      '<span class="dot">'+LV[l].e+'</span>'+
+      '<span class="t">'+pad(t.hh)+':'+pad(t.mm)+'<em>→'+pad(t.ah)+':'+pad(t.am)+'</em></span>'+
+      '<span class="d">'+t.dest+'行'+(t.start?'・始発':'')+'</span>'+
+      '<span class="m">'+Math.floor(d2)+'分後</span>';
+    ul.appendChild(row);
+  });
+
+  const body = document.getElementById('ttBody');
+  const key = dir+'|'+dayType+'|'+curH+'|'+(simMin===null?'live':'sim');
+  if(body.dataset.key !== key){
+    body.dataset.key = key;
+    const byHour = {};
+    list.forEach(t=>{ (byHour[t.hh] = byHour[t.hh] || []).push(t); });
+    let html = '';
+    Object.keys(byHour).map(Number).sort((a,b)=>a-b).forEach(h=>{
+      html += '<div class="hr'+(h===curH?' now':'')+'"><div class="h">'+h+'</div><div class="mins">';
+      byHour[h].forEach(t=>{
+        const cls = [];
+        if(t.ltd) cls.push('ltd');
+        if(t.abs < nowMin) cls.push('past');
+        if(t.abs === t0.abs && !rollover) cls.push('next');
+        html += '<span class="'+cls.join(' ')+'">'+pad(t.mm)+'<sub>'+t.dest.slice(0,1)+'</sub></span>';
+      });
+      html += '</div></div>';
+    });
+    body.innerHTML = html;
+  }else{
+    let i = 0;
+    body.querySelectorAll('.mins span').forEach(el=>{
+      const t = list[i++];
+      el.classList.toggle('past', t.abs < nowMin);
+      el.classList.toggle('next', t.abs === t0.abs && !rollover);
+    });
+  }
+  document.getElementById('ttLabel').textContent =
+    STOPS[dir].from+'発／'+(dayType==='weekday'?'平日':'土休日');
+}
+
+// ===== 操作 =====
+function refreshPills(){
+  document.querySelectorAll('.dpills button').forEach(b=>{
+    b.setAttribute('aria-pressed', b.dataset.dt === dayType);
+  });
+}
+function setDir(d){
+  dir = d;
+  document.getElementById('btnOut').setAttribute('aria-selected', d==='out');
+  document.getElementById('btnRet').setAttribute('aria-selected', d==='ret');
+  document.getElementById('ttBody').dataset.key = '';
+  lastDeparted = -1;
+  render();
+}
+document.getElementById('btnOut').onclick = ()=>setDir('out');
+document.getElementById('btnRet').onclick = ()=>setDir('ret');
+document.querySelectorAll('.dpills button').forEach(b=>{
+  b.onclick = ()=>{ dayType = b.dataset.dt; refreshPills(); document.getElementById('ttBody').dataset.key=''; lastDeparted = -1; render(); };
+});
+
+(function(){
+  const d = new Date();
+  const auto = autoDayType(d);
+  document.getElementById('dayNow').innerHTML =
+    '今日は<b>' + (d.getMonth()+1) + '/' + d.getDate() + '（' + WD[d.getDay()] + '）' +
+    (isHolidayDate(d) ? '・祝日' : '') + '</b> → ' + (auto==='weekday' ? '平日ダイヤ' : '土休日ダイヤ');
+})();
+
+const rangeEl = document.getElementById('timeRange');
+const nowBtn = document.getElementById('nowBtn');
+function updateScrubUI(){
+  const sim = simMin !== null;
+  document.getElementById('scrub').classList.toggle('sim', sim);
+  document.getElementById('scrubLabel').innerHTML = sim
+    ? '<b>' + pad(Math.floor(simMin/60)%24) + ':' + pad(simMin%60) + '</b> にいたら、で表示中'
+    : 'いまの時刻で表示中';
+  nowBtn.style.display = sim ? '' : 'none';
+}
+rangeEl.addEventListener('input', ()=>{
+  simMin = +rangeEl.value;
+  updateScrubUI();
+  render();
+});
+nowBtn.onclick = ()=>{ simMin = null; lastDeparted = -1; updateScrubUI(); render(); };
+
+document.getElementById('ttBox').addEventListener('toggle', function(){
+  if(this.open){
+    const el = document.querySelector('.hr.now');
+    if(el) setTimeout(()=>el.scrollIntoView({block:'center', behavior:'smooth'}), 60);
+  }
+});
+
+document.getElementById('trainGone').appendChild(
+  document.getElementById('trainMain').firstElementChild.cloneNode(true)
+);
+window.addEventListener('resize', ()=>render());
+
+refreshPills();
+updateScrubUI();
+setDir('out');
+setInterval(render, 1000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) render(); });
+</script>
+</body>
+</html>
